@@ -186,17 +186,19 @@ textarea{width:100%;min-height:40vh;border:1px solid var(--line);background:var(
 .spots{display:grid;grid-template-columns:1fr;gap:10px}
 .spots .card{margin:0!important}
 .spots b{display:block;font-size:14.5px;font-weight:900}
-.eat{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:8px;min-height:56px}
-.eat:active{transform:scale(.98)}
-.eat .ic{flex:none;font-size:24px;line-height:1}
-.eat .nm{flex:1;min-width:0;font-weight:700;font-size:14.5px;line-height:1.35}
-.eat .nm small{display:block;font-weight:500;font-size:12px;color:var(--ink-3)}
-.eat .ck{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--ink-3);display:grid;place-items:center}
-.eat .ck svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
-.eat.on{border-color:var(--ok);background:var(--ok-soft)}
-.eat.on .ck{background:var(--ok);border-color:var(--ok)}
-.eat.on .ck svg{opacity:1}
-.eat.on .nm small{color:var(--ok)}
+.chk{background:var(--paper);border:1.5px solid var(--line);border-radius:14px;margin-top:8px;overflow:hidden}
+.chk .hit{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;min-height:56px}
+.chk .hit:active{transform:scale(.98)}
+.chk .ic{flex:none;width:26px;text-align:center;font-size:24px;line-height:1}
+.chk .nm{flex:1;min-width:0;font-weight:700;font-size:14.5px;line-height:1.35}
+.chk .nm small{display:block;font-weight:500;font-size:12px;color:var(--ink-3)}
+.chk .ck{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--ink-3);display:grid;place-items:center}
+.chk .ck svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.chk .go{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding:10px 12px 10px 50px;min-height:44px;font-size:12.5px;font-weight:700;text-decoration:none}
+.chk.on{border-color:var(--ok);background:var(--ok-soft)}
+.chk.on .ck{background:var(--ok);border-color:var(--ok)}
+.chk.on .ck svg{opacity:1}
+.chk.on .nm small{color:var(--ok)}
 .spots p{margin:4px 0 0;font-size:12.5px;color:var(--ink-2);line-height:1.5;word-break:keep-all;overflow-wrap:anywhere}
 .spots p span{display:block} /* 公式の改行を1行ずつ保持し、狭い画面では<wbr>（文節）で折り返す */
 .spots .tagx{display:inline-block;font-size:10.5px;font-weight:900;color:var(--red);letter-spacing:.06em}
@@ -364,6 +366,13 @@ textarea{width:100%;min-height:40vh;border:1px solid var(--line);background:var(
         <div class="card"><span class="tagx">SPECIAL 02</span><b>フォトブース企画</b><p><span>プロカメラマンによる<wbr>フォトブース！</span><span>SNSアイコンや<wbr>就活のための<wbr>近影、</span><span>仲間との<wbr>思い出の<wbr>1枚に<wbr>ぜひ！</span></p></div>
         <div class="card"><span class="tagx">SPECIAL 03</span><b>ステッカーコーナー</b><p><span>SNSの<wbr>アイコンや<wbr>手持ちの<wbr>写真を</span><span>技育祭<wbr>オリジナルデザインの<wbr>ステッカーに！</span><span>作った<wbr>ステッカーは<wbr>名札に<wbr>貼って<wbr>アピールしよう！</span></p></div>
         <div class="card"><span class="tagx">SPECIAL 04</span><b>大抽選会</b><small class="muted" style="display:block;font-size:11.5px">※パーティーの途中で実施</small><p><span>MacBook&nbsp;Neoや<wbr>技術書が<wbr>当たる<wbr>大抽選会！</span><span>スポンサーブースを<wbr>回って<wbr>抽選券を<wbr>手に入れよう！</span></p><button class="more" data-go="booth" style="margin-top:6px;font-size:12.5px;font-weight:700;color:var(--red)">詳しく見る</button></div>
+      </div>
+
+      <h2>特別企画チェックリスト <span class="more" id="spCount" style="color:var(--ink-3);font-weight:700"></span></h2>
+      <div class="card">
+        <div class="muted">参加したらタップしてチェック！全部コンプリートを目指そう</div>
+        <div id="spList"></div>
+        <div class="progress"><i id="spBar" style="width:0"></i></div>
       </div>
 
       <h2>食事</h2>
@@ -649,25 +658,37 @@ postText.addEventListener("input",countPost);
 $("#chips").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ postText.value=tpl(b.dataset.tpl); countPost(); buzz(); }));
 postBtn.addEventListener("click",()=>{ postBtn.href=postURL(); buzz(); });
 
-/* ====== 軽食チェックリスト ====== */
+/* ====== チェックリスト（特別企画・軽食） ====== */
+const SPECIALS = [
+  {id:"iconframe", n:"Xのアイコンフレームを設定", sub:"技育祭仕様のアイコンでXに投稿しよう", ic:"🖼️", url:"https://geek.supporterz.jp/apps/icon-app/geeksai2026autumn", link:"アイコンフレームを作る"},
+  {id:"shrine", n:"技育神社にお参り", sub:"鳥居で写真・御朱印・おみくじ", ic:"⛩️"},
+  {id:"photo", n:"フォトブースで撮影", sub:"プロカメラマンが撮影", ic:"📸"},
+  {id:"sticker", n:"ステッカーを作って名札に貼る", sub:"本部のステッカーコーナーで", ic:"🏷️"},
+  {id:"challenge", n:"サポーターズチャレンジ", ic:"🏆", url:"https://geek.supporterz.jp/apps/supporterz-challenge", link:"サポーターズチャレンジを開く"},
+  {id:"lottery", n:"大抽選会に参加", sub:"18:00〜のパーティーの途中で実施", ic:"🎁"}
+];
 const EATS = [
   {id:"karaage", n:"からあげ", ic:"🍗"},
   {id:"castella", n:"ベビーカステラ", ic:"🧁"}
 ];
-let eaten = new Set(store.get("eats", []));
-function renderEats(){
-  $("#eatList").innerHTML = EATS.map(f=>{ const on=eaten.has(f.id); return `<button class="eat ${on?"on":""}" data-id="${f.id}" aria-pressed="${on}"><span class="ic" aria-hidden="true">${f.ic}</span><span class="nm">${esc(f.n)}<small>${on?"食べた！":"まだ"}</small></span><span class="ck"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></button>`; }).join("");
-  const done = EATS.filter(f=>eaten.has(f.id)).length;
-  $("#eatCount").textContent = `${done} / ${EATS.length}`;
-  $("#eatBar").style.width = (done/EATS.length*100)+"%";
+function checklist({items, key, list, count, bar, doneLabel, msg, complete}){
+  const done = new Set(store.get(key, []));
+  const render = () => {
+    $(list).innerHTML = items.map(f=>{ const on=done.has(f.id); return `<div class="chk ${on?"on":""}"><button class="hit" data-id="${f.id}" aria-pressed="${on}"><span class="ic" aria-hidden="true">${f.ic}</span><span class="nm">${esc(f.n)}<small>${on? doneLabel : esc(f.sub||"まだ")}</small></span><span class="ck"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></button>${f.url?`<a class="go" href="${esc(f.url)}" target="_blank" rel="noopener"><span>${esc(f.link)}</span><span aria-hidden="true">↗</span></a>`:""}</div>`; }).join("");
+    const n = items.filter(f=>done.has(f.id)).length;
+    $(count).textContent = `${n} / ${items.length}`;
+    $(bar).style.width = (n/items.length*100)+"%";
+  };
+  $(list).addEventListener("click",e=>{
+    const b=e.target.closest(".hit"); if(!b) return;
+    const id=b.dataset.id; buzz();
+    if(done.has(id)) done.delete(id); else { done.add(id); toast(items.every(f=>done.has(f.id))? complete : msg); }
+    store.set(key,[...done]); render();
+  });
+  render();
 }
-$("#eatList").addEventListener("click",e=>{
-  const b=e.target.closest(".eat"); if(!b) return;
-  const id=b.dataset.id; buzz();
-  if(eaten.has(id)) eaten.delete(id); else { eaten.add(id); toast(eaten.size===EATS.length? "軽食コンプリート！🎉" : "ごちそうさまでした！"); }
-  store.set("eats",[...eaten]); renderEats();
-});
-renderEats();
+checklist({items:SPECIALS, key:"specials", list:"#spList", count:"#spCount", bar:"#spBar", doneLabel:"できた！", msg:"ナイス！", complete:"特別企画コンプリート！🎉"});
+checklist({items:EATS, key:"eats", list:"#eatList", count:"#eatCount", bar:"#eatBar", doneLabel:"食べた！", msg:"ごちそうさまでした！", complete:"軽食コンプリート！🎉"});
 
 /* ====== theme ====== */
 const root=document.documentElement; const savedTheme=store.get("theme",null); if(savedTheme) root.dataset.theme=savedTheme;
