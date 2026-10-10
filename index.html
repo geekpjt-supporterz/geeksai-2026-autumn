@@ -353,7 +353,7 @@ textarea{width:100%;min-height:40vh;border:1px solid var(--line);background:var(
           <button data-tpl="impression">感想</button>
         </div>
         <textarea id="postText" style="min-height:120px;margin-top:10px" placeholder="投稿する内容"></textarea>
-        <div class="postfoot"><span id="postCount">0 / 140</span><a class="btn" id="postBtn" href="https://x.com/intent/tweet" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">Xで投稿</a></div>
+        <div class="postfoot"><span id="postCount">0 / 140</span><span style="display:flex;gap:8px"><button class="btn ghost" id="copyTag" type="button" aria-label="#技育祭 をコピー" style="display:inline-flex;align-items:center;gap:5px;padding:10px 12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>#技育祭</button><a class="btn" id="postBtn" href="https://x.com/intent/tweet" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">Xで投稿</a></span></div>
       </div>
       <p class="note">※ Xの仕様上、ハッシュタグのタイムラインをアプリ内に埋め込むことはできないため、Xアプリ／ブラウザで開きます。投稿前に内容を確認してください。</p>
     </section>
@@ -657,6 +657,12 @@ function prepPost(){ if(!postText.value.trim()) postText.value=tpl(currentSessio
 postText.addEventListener("input",countPost);
 $("#chips").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ postText.value=tpl(b.dataset.tpl); countPost(); buzz(); }));
 postBtn.addEventListener("click",()=>{ postBtn.href=postURL(); buzz(); });
+$("#copyTag").addEventListener("click",async()=>{
+  buzz();
+  try{ await navigator.clipboard.writeText(TAG); }
+  catch(e){ const t=document.createElement("textarea"); t.value=TAG; t.setAttribute("readonly",""); t.style.position="fixed"; t.style.opacity="0"; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  toast(TAG+" をコピーしました");
+});
 
 /* ====== チェックリスト（特別企画・軽食） ====== */
 const SPECIALS = [
